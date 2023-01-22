@@ -25,7 +25,7 @@ namespace GAMMHomeAssignmentAPI.Controllers
 
 		
 		[HttpGet("GetAllUser")]
-		[Authorize(Roles = "Employee")]
+		//[Authorize(Roles = "Employee")]
 		public List<User> GetAllUser()
 		{
 			return _repo.GetAllUser();
