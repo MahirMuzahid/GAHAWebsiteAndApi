@@ -32,7 +32,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 				.GetBytes(builder.Configuration.GetSection("AppSettings:Token").Value))
 			};
 	});
-builder.Services.AddAutoMapper(typeof(Program).Assembly);
+builder.Services.AddAutoMapper(typeof(RegisterUserMapper).Assembly);
 
 var app = builder.Build();
 

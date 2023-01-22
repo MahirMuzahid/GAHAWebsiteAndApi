@@ -38,10 +38,17 @@ namespace GAMMHomeAssignmentAPI.Controllers
 		[HttpPost("RegisterUser")]
 		public Response RegisterUser(RegisterUserDTO registerUserDTO)
 		{
-			var user = _mapper1.Map<User>(registerUserDTO);
+			//if (!_repo.IsThisUserNameExits(registerUserDTO.User_Name)) return new Response(500, "User Name already exists");
+			User user = new User();
+			user.User_Name = registerUserDTO.User_Name;
+			user.User_ID = registerUserDTO.User_ID;
+			user.Password = registerUserDTO.Password;
+			user.Full_Name= registerUserDTO.Full_Name;
+			user.RefreshToken = "N/A";
+			user.TokenCreated = "N/A";
+			user.TokenExpired = "N/A";
 			var result = _repo.RegisterUser(user);
-
-			if(result.Status != 200) return result;
+			if (result.Status != 200) return result;
 
 			return Login(new UserDTO(user.User_Name, user.Password));
 		}

@@ -1,6 +1,7 @@
 ﻿using GAMMHomeAssignmentAPI.Database_Connection;
 using GAMMHomeAssignmentAPI.Modal.EmployeeModal;
 using Microsoft.IdentityModel.Tokens;
+using System.Collections;
 using System.Data.SqlClient;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -37,11 +38,11 @@ namespace GAMMHomeAssignmentAPI.Modal.UserModal
 					objAdd.User_Name = reader["User_Name"].ToString();
 					objAdd.Full_Name = reader["Full_Name"].ToString();
 					objAdd.Password = reader["Password"].ToString();
-					objAdd.PasswordHash = reader["PasswordHash"].ToString();
-					objAdd.PasswordSalt = reader["PasswordSalt"].ToString();
+					objAdd.PasswordHash = (byte[])reader["PasswordHash"];
+					objAdd.PasswordSalt = (byte[])reader["PasswordSalt"];
 					objAdd.RefreshToken = reader["RefreshToken"].ToString();
 					objAdd.TokenCreated = reader["TokenCreated"].ToString();
-					objAdd.TokenExpires = reader["TokenExpires"].ToString();
+					objAdd.TokenExpired = reader["TokenExpired"].ToString();
 					objAdd.Response = new Response(200, "OK");
 					objRList.Add(objAdd);
 				}
@@ -74,11 +75,11 @@ namespace GAMMHomeAssignmentAPI.Modal.UserModal
 					objR.User_Name = reader["User_Name"].ToString();
 					objR.Full_Name = reader["Full_Name"].ToString();
 					objR.Password = reader["Password"].ToString();
-					objR.PasswordHash = reader["PasswordHash"].ToString();
-					objR.PasswordSalt = reader["PasswordSalt"].ToString();
+					objR.PasswordHash = (byte[])reader["PasswordHash"];
+					objR.PasswordSalt = (byte[])reader["PasswordSalt"];
 					objR.RefreshToken = reader["RefreshToken"].ToString();
 					objR.TokenCreated = reader["TokenCreated"].ToString();
-					objR.TokenExpires = reader["TokenExpires"].ToString();
+					objR.TokenExpired = reader["TokenExpired"].ToString();
 					objR.Response = new Response(200, "OK");
 				}
 				_ch.Close();
@@ -91,11 +92,15 @@ namespace GAMMHomeAssignmentAPI.Modal.UserModal
 		}
 		public Response RegisterUser(User obj)
 		{
+			CreatePasswordHash(obj.Password, out byte[] passwordHash, out byte[] passwordSalt);
+			obj.PasswordHash = passwordHash; 
+			obj.PasswordSalt = passwordSalt;
+
 			Response response = new Response(0, "");
 			try
 			{
 				_ch.Connect();
-				SqlCommand cmd = new SqlCommand("SetEmployee", _ch.DatabaseInstance());
+				SqlCommand cmd = new SqlCommand("RegisterUser", _ch.DatabaseInstance());
 				cmd.CommandType = System.Data.CommandType.StoredProcedure;
 				cmd.Parameters.AddWithValue("@User_ID", obj.User_ID);
 				cmd.Parameters.AddWithValue("@User_Name", obj.User_Name);
@@ -105,7 +110,7 @@ namespace GAMMHomeAssignmentAPI.Modal.UserModal
 				cmd.Parameters.AddWithValue("@PasswordSalt", obj.PasswordSalt);
 				cmd.Parameters.AddWithValue("@RefreshToken", obj.RefreshToken);
 				cmd.Parameters.AddWithValue("@TokenCreated", obj.TokenCreated);
-				cmd.Parameters.AddWithValue("@TokenExpires", obj.TokenExpires);
+				cmd.Parameters.AddWithValue("@TokenExpired", obj.TokenExpired);
 				_ch.Open();
 				int i = cmd.ExecuteNonQuery();
 				if (i != 0)
@@ -127,6 +132,51 @@ namespace GAMMHomeAssignmentAPI.Modal.UserModal
 			}
 			return response;
 		}
+
+		public bool IsThisUserNameExits(string userName)
+		{
+			List<User> objRList = new List<User>();
+			try
+			{
+				_ch.Connect();
+				SqlCommand cmd = new SqlCommand("CheckUserName", _ch.DatabaseInstance());
+				cmd.CommandType = System.Data.CommandType.StoredProcedure;
+				cmd.Parameters.AddWithValue("@User_Name", userName);
+
+				_ch.Open();
+				SqlDataReader reader = cmd.ExecuteReader();
+				while (reader.Read())
+				{
+					User objAdd = new User();
+					objAdd.User_ID = reader["User_ID"].ToString(); ;
+					objAdd.User_Name = reader["User_Name"].ToString();
+					objAdd.Full_Name = reader["Full_Name"].ToString();
+					objAdd.Password = reader["Password"].ToString();
+					objAdd.PasswordHash = (byte[])reader["PasswordHash"];
+					objAdd.PasswordSalt = (byte[])reader["PasswordSalt"];
+					objAdd.RefreshToken = reader["RefreshToken"].ToString();
+					objAdd.TokenCreated = reader["TokenCreated"].ToString();
+					objAdd.TokenExpired = reader["TokenExpired"].ToString();
+					objAdd.Response = new Response(200, "OK");
+					objRList.Add(objAdd);
+				}
+				_ch.Close();
+				if (objRList.Count == 0) return false;
+				return true;
+			}
+			catch (Exception ex)
+			{
+				return false;
+			}
+		}
+		private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
+		{
+			using (var hmac = new HMACSHA512())
+			{
+				passwordSalt = hmac.Key;
+				passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+			}
+		}
 		public Response Login( UserDTO userDTO)
 		{
 			User objR = new User();
@@ -145,11 +195,11 @@ namespace GAMMHomeAssignmentAPI.Modal.UserModal
 					objR.User_Name = reader["User_Name"].ToString();
 					objR.Full_Name = reader["Full_Name"].ToString();
 					objR.Password = reader["Password"].ToString();
-					objR.PasswordHash = reader["PasswordHash"].ToString();
-					objR.PasswordSalt = reader["PasswordSalt"].ToString();
+					objR.PasswordHash = (byte[])reader["PasswordHash"];
+					objR.PasswordSalt = (byte[])reader["PasswordSalt"];
 					objR.RefreshToken = reader["RefreshToken"].ToString();
 					objR.TokenCreated = reader["TokenCreated"].ToString();
-					objR.TokenExpires = reader["TokenExpires"].ToString();
+					objR.TokenExpired = reader["TokenExpired"].ToString();
 					objR.Response = new Response(200, "OK");
 				}
 				_ch.Close();
@@ -158,9 +208,7 @@ namespace GAMMHomeAssignmentAPI.Modal.UserModal
 			{
 				objR.Response = new Response(500, ex.Message);
 			}
-			var passHashByte = Encoding.ASCII.GetBytes(objR.PasswordHash);
-			var passSaltByte = Encoding.ASCII.GetBytes(objR.PasswordSalt);
-			if (objR == null || !VerifyPasswordHash(objR.Password, passHashByte, passSaltByte))
+			if (objR == null || !VerifyPasswordHash(objR.Password, objR.PasswordHash, objR.PasswordSalt))
 			{
 				return new Response(1,"Wrong Email Or Password!");
 			}
@@ -216,7 +264,7 @@ namespace GAMMHomeAssignmentAPI.Modal.UserModal
 				cmd.Parameters.AddWithValue("@PasswordSalt", obj.PasswordSalt);
 				cmd.Parameters.AddWithValue("@RefreshToken", obj.RefreshToken);
 				cmd.Parameters.AddWithValue("@TokenCreated", obj.TokenCreated);
-				cmd.Parameters.AddWithValue("@TokenExpires", obj.TokenExpires);
+				cmd.Parameters.AddWithValue("@TokenExpired", obj.TokenExpired);
 				_ch.Open();
 				int i = cmd.ExecuteNonQuery();
 				if (i != 0)
