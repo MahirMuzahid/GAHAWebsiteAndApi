@@ -1,4 +1,5 @@
-﻿using GAMMHomeAssignmentAPI.Database_Connection;
+﻿using AutoMapper;
+using GAMMHomeAssignmentAPI.Database_Connection;
 using System.Data.SqlClient;
 
 namespace GAMMHomeAssignmentAPI.Modal.EmployeeModal
@@ -9,7 +10,7 @@ namespace GAMMHomeAssignmentAPI.Modal.EmployeeModal
 
 		public EmployeeRepository(IConfiguration configuration)
 		{
-			_ch = new ConnectionHelper(configuration);
+			_ch = new ConnectionHelper(configuration);		
 		}
 		public List<Employee> GetAllEmployee()
 		{
@@ -70,7 +71,6 @@ namespace GAMMHomeAssignmentAPI.Modal.EmployeeModal
 			}
 			return objR;
 		}
-
 		public Response SetEmployee(Employee obj)
 		{
 			Response response = new Response(0,"");
