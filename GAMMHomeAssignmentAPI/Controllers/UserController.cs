@@ -23,14 +23,15 @@ namespace GAMMHomeAssignmentAPI.Controllers
 			_mapper1 = mapper;
 		}
 
-		[Authorize]
+		
 		[HttpGet("GetAllUser")]
+		[Authorize(Roles = "Employee")]
 		public List<User> GetAllUser()
 		{
 			return _repo.GetAllUser();
 		}
 		[HttpGet("GetSingleUser/{id}")]
-		[Authorize]
+		//[Authorize]
 		public User GetSingleUser(string id)
 		{
 			return _repo.GetSingleUser(id);
@@ -48,9 +49,7 @@ namespace GAMMHomeAssignmentAPI.Controllers
 			user.TokenCreated = "N/A";
 			user.TokenExpired = "N/A";
 			var result = _repo.RegisterUser(user);
-			if (result.Status != 200) return result;
-
-			return Login(new UserDTO(user.User_Name, user.Password));
+			return result;
 		}
 
 		[HttpPost("Login")]
@@ -59,13 +58,13 @@ namespace GAMMHomeAssignmentAPI.Controllers
 			return _repo.Login(userDTO);
 		}
 		[HttpPost("UpdateUser")]
-		[Authorize]
+		//[Authorize]
 		public Response UpdateUser(User employee)
 		{
 			return _repo.UpdateUser(employee);
 		}
 		[HttpPost("DeleteUser/{id}")]
-		[Authorize]
+		//[Authorize]
 		public Response DeleteUser(string id)
 		{
 			return _repo.DeleteUser(id);

@@ -35,7 +35,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAutoMapper(typeof(RegisterUserMapper).Assembly);
 
 var app = builder.Build();
-
+app.UseAuthorization();
+app.UseAuthorization();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -46,9 +47,7 @@ if (app.Environment.IsDevelopment())
 app.UseCors("corspolicy");
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
-app.UseAuthentication();
-app.UseAuthorization();
+
 
 app.MapControllers();
 

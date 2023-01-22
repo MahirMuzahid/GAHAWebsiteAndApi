@@ -20,14 +20,14 @@ namespace GAMMHomeAssignmentAPI.Controllers
 			_repo = new EmployeeRepository(configuration);
 		}
 
-		[Authorize]
+		//[Authorize]
 		[HttpGet("GetAllEmployee")]
 		public List<Employee> GetAllEmployee()
 		{
 			return _repo.GetAllEmployee();
 		}
 		[HttpGet("GetSingleEmployee/{id}")]
-		[Authorize]
+		//[Authorize]
 		public Employee GetSingleEmployee(string id)
 		{
 			return _repo.GetSingleEmployee(id);
@@ -38,13 +38,13 @@ namespace GAMMHomeAssignmentAPI.Controllers
 			return _repo.SetEmployee(employee);
 		}
 		[HttpPost("UpdateEmployee")]
-		[Authorize]
+		//[Authorize]
 		public Response UpdateEmployee(Employee employee)
 		{
 			return _repo.UpdateEmployee(employee);
 		}
 		[HttpPost("DeleteEmployee/{id}")]
-		[Authorize]
+		//[Authorize]
 		public Response DeleteEmployee(string id)
 		{
 			return _repo.DeleteEmployee(id);

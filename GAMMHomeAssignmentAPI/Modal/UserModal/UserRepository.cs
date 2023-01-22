@@ -223,7 +223,7 @@ namespace GAMMHomeAssignmentAPI.Modal.UserModal
 			List<Claim> claims = new List<Claim>()
 			{
 				new Claim(ClaimTypes.Name, user.Full_Name),
-				new Claim(ClaimTypes.Role, "User"),
+				new Claim(ClaimTypes.Role, "Employee")
 			};
 
 			var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_appToken));
